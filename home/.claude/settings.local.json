@@ -1,0 +1,210 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(killall -9 com.docker.backend com.docker.virtualization com.docker.build com.docker.socket docker-sandboxd com.docker.osxfs com.docker.krun)",
+      "Bash(rm -rf ~/Library/Containers/com.docker.docker/Data/vms/0/data/* ~/Library/Containers/com.docker.docker/Data/vms/0/log/*)",
+      "Bash(open /Applications/Docker.app)",
+      "Bash(docker info *)",
+      "Bash(sbx *)"
+    ],
+    "defaultMode": "bypassPermissions",
+    "other_defaultMode": "plan|dontAsk|bypassPermissions|auto"
+  },
+  "model": "GLM-5          ",
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pixtuoid-hook"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pixtuoid-hook"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pixtuoid-hook"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pixtuoid-hook"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/.claude/hooks/session-start.sh",
+            "timeout": 60,
+            "statusMessage": "Checking Docker sandbox (sbx)..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tee -a /tmp/chikuwa.raw.log | chikuwa hook"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline/statusline.sh"
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true,
+    "claude-tmux-session@tmux-session": true,
+    "mattpocock-skills@mattpocock": true,
+    "fm-agent-plugin@fm-agent-plugin": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      }
+    },
+    "fm-agent-plugin": {
+      "source": {
+        "source": "github",
+        "repo": "fmagent-project/FM-Agent-Plugin"
+      }
+    }
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "commendedmodel": [
+    "doubao-seed-2.0-code",
+    "doubao-seed-2.0-pro",
+    "doubao-seed-2.0-lite",
+    "doubao-seed-code",
+    "minimax-m2.5",
+    "glm-4.7",
+    "deepseek-v3.2",
+    "kimi-k2.5"
+  ],
+  "mcpServers": {
+    "browser": {
+      "disabled": true
+    }
+  }
+}

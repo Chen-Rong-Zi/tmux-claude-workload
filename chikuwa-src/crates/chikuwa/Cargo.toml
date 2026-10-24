@@ -1,0 +1,32 @@
+[package]
+name = "chikuwa"
+version = "0.1.8"
+edition = "2021"
+description = "tmux AI Agent monitor TUI"
+license = "Apache-2.0"
+repository = "https://github.com/nownabe/chikuwa"
+
+[dependencies]
+chikuwa-types = { path = "../chikuwa-types" }
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+crossterm = { git = "https://github.com/crossterm-rs/crossterm", rev = "d4e9929f9a1c4adf91505d54f8527c817ae504cd" }
+ratatui = "0.29"
+schemars = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["rustls-tls", "json"], default-features = false }
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+unicode-width = "0.2"
+
+[[bin]]
+name = "chikuwa"
+path = "src/main.rs"
+
+[build-dependencies]
+chikuwa-types = { path = "../chikuwa-types" }
+schemars = "0.8"
+serde_json = "1"
+
+[dev-dependencies]

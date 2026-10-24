@@ -1,0 +1,168 @@
+name: Release-plz
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release-plz-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: read
+      id-token: write
+    outputs:
+      releases-created: ${{ steps.release.outputs.releases_created }}
+      tag: ${{ steps.set-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
+        id: app-token
+        with:
+          app-id: ${{ vars.GH_APP_RELEASER_ID }}
+          private-key: ${{ secrets.GH_APP_RELEASER_PKEY }}
+          permission-contents: write
+      - uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9 # master
+        with:
+          toolchain: stable
+      - uses: rust-lang/crates-io-auth-action@b7e9a28eded4986ec6b1fa40eeee8f8f165559ec # v1.0.3
+      - id: release
+        uses: release-plz/action@1528104d2ca23787631a1c1f022abb64b34c1e11 # v0.5
+        with:
+          command: release
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Set tag output
+        id: set-tag
+        if: steps.release.outputs.releases_created == 'true'
+        run: echo "tag=$(echo "$RELEASES" | jq -r '.[0].tag')" >> "$GITHUB_OUTPUT"
+        env:
+          RELEASES: ${{ steps.release.outputs.releases }}
+
+  release-plz-pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
+        id: app-token
+        with:
+          app-id: ${{ vars.GH_APP_RELEASER_ID }}
+          private-key: ${{ secrets.GH_APP_RELEASER_PKEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9 # master
+        with:
+          toolchain: stable
+      - uses: release-plz/action@1528104d2ca23787631a1c1f022abb64b34c1e11 # v0.5
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Update flake.nix version in release PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          # Find the open release PR created by release-plz
+          PR_BRANCH=$(gh pr list --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("release-plz"))][0].headRefName // empty')
+          if [ -z "$PR_BRANCH" ]; then
+            echo "No open release-plz PR found, skipping"
+            exit 0
+          fi
+
+          # Fetch and checkout the PR branch
+          git fetch origin "$PR_BRANCH"
+          git checkout "$PR_BRANCH"
+
+          # Extract version from Cargo.toml
+          VERSION=$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+
+          # Update flake.nix
+          sed -i "s/version = \"[0-9][0-9.]*\"/version = \"$VERSION\"/" flake.nix
+
+          # Only commit if there are changes
+          if git diff --quiet flake.nix; then
+            echo "flake.nix already up to date"
+            exit 0
+          fi
+
+          # Create a signed commit via GitHub API
+          FLAKE_SHA=$(gh api "repos/${{ github.repository }}/contents/flake.nix?ref=${PR_BRANCH}" --jq '.sha')
+          gh api "repos/${{ github.repository }}/contents/flake.nix" \
+            --method PUT \
+            -f message="chore: update flake.nix version to ${VERSION}" \
+            -f content="$(base64 -w 0 < flake.nix)" \
+            -f sha="${FLAKE_SHA}" \
+            -f branch="${PR_BRANCH}"
+
+  push-cachix:
+    needs: release-plz-release
+    if: needs.release-plz-release.outputs.releases-created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: {}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.release-plz-release.outputs.tag }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@08dcb3a5e62fa31e2da3d490afc4176ef55ecd72 # v30
+      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
+        with:
+          name: chikuwa
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - run: nix build
+      - run: cachix push chikuwa result
+
+  upload-binary:
+    needs: release-plz-release
+    if: needs.release-plz-release.outputs.releases-created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
+        id: app-token
+        with:
+          app-id: ${{ vars.GH_APP_RELEASER_ID }}
+          private-key: ${{ secrets.GH_APP_RELEASER_PKEY }}
+          permission-contents: write
+      - uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9 # master
+        with:
+          toolchain: stable
+      - name: Build release binary
+        run: cargo build --release
+      - name: Package binary
+        run: |
+          cd target/release
+          tar czf chikuwa-x86_64-unknown-linux-gnu.tar.gz chikuwa
+      - name: Copy binary
+        run: cp target/release/chikuwa chikuwa-x86_64-unknown-linux-gnu
+      - name: Upload to GitHub Release
+        run: gh release upload "$RELEASE_TAG" chikuwa-x86_64-unknown-linux-gnu target/release/chikuwa-x86_64-unknown-linux-gnu.tar.gz
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE_TAG: ${{ needs.release-plz-release.outputs.tag }}
+      - name: Publish release
+        run: gh release edit "$RELEASE_TAG" --draft=false
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE_TAG: ${{ needs.release-plz-release.outputs.tag }}

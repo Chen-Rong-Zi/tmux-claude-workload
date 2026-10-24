@@ -1,0 +1,385 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentState",
+  "description": "Top-level agent state tracked by the TUI.",
+  "type": "object",
+  "required": [
+    "data",
+    "tmux_pane",
+    "updated_at"
+  ],
+  "properties": {
+    "data": {
+      "$ref": "#/definitions/AgentData"
+    },
+    "tmux_pane": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  },
+  "definitions": {
+    "ActiveTool": {
+      "description": "A tool call that is currently in progress.",
+      "type": "object",
+      "required": [
+        "key",
+        "name"
+      ],
+      "properties": {
+        "detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "failure_detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "key": {
+          "$ref": "#/definitions/ToolKey"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "AgentData": {
+      "description": "Per-agent state data, tagged by source.",
+      "oneOf": [
+        {
+          "description": "Full state from Claude Code hooks.",
+          "type": "object",
+          "required": [
+            "event_emoji",
+            "hook_event_name",
+            "status",
+            "type"
+          ],
+          "properties": {
+            "active_tools": {
+              "description": "All active (in-flight) tool calls",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActiveTool"
+              }
+            },
+            "agent_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "event_emoji": {
+              "type": "string"
+            },
+            "failure_detail": {
+              "description": "Failure message from PostToolUseFailure",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "hook_event_name": {
+              "type": "string"
+            },
+            "recent_tools": {
+              "description": "Recently completed tool calls, oldest to newest",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActiveTool"
+              }
+            },
+            "session_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "$ref": "#/definitions/AgentStatus"
+            },
+            "tool_detail": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tool_name": {
+              "description": "Currently running tool (from the latest event)",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "claude"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Full state from OpenCode hooks/plugin.",
+          "type": "object",
+          "required": [
+            "status",
+            "type"
+          ],
+          "properties": {
+            "active_tools": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActiveTool"
+              }
+            },
+            "event_emoji": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "event_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "is_busy": {
+              "default": false,
+              "type": "boolean"
+            },
+            "recent_tools": {
+              "description": "Recently completed tool calls, oldest to newest",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActiveTool"
+              }
+            },
+            "session_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "$ref": "#/definitions/AgentStatus"
+            },
+            "tool_detail": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tool_name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "opencode"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Full state from Codex CLI hooks.",
+          "type": "object",
+          "required": [
+            "event_emoji",
+            "hook_event_name",
+            "status",
+            "type"
+          ],
+          "properties": {
+            "active_tools": {
+              "description": "All active (in-flight) tool calls",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActiveTool"
+              }
+            },
+            "agent_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "agent_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "cwd": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "event_emoji": {
+              "type": "string"
+            },
+            "failure_detail": {
+              "description": "Failure message from PostToolUse failure",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "hook_event_name": {
+              "type": "string"
+            },
+            "model": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "permission_mode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "recent_tools": {
+              "description": "Recently completed tool calls, oldest to newest",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActiveTool"
+              }
+            },
+            "session_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "$ref": "#/definitions/AgentStatus"
+            },
+            "tool_detail": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tool_name": {
+              "description": "Currently running tool (from the latest event)",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "transcript_path": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "turn_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "codex"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "AgentStatus": {
+      "type": "string",
+      "enum": [
+        "started",
+        "running",
+        "waiting",
+        "permission",
+        "ended"
+      ]
+    },
+    "ToolKey": {
+      "description": "Unique identifier for an in-flight tool call.",
+      "oneOf": [
+        {
+          "description": "Claude Code: exact match via tool_use_id",
+          "type": "object",
+          "required": [
+            "tool_use_id",
+            "type"
+          ],
+          "properties": {
+            "tool_use_id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "claude"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Codex CLI: exact match via tool_use_id",
+          "type": "object",
+          "required": [
+            "tool_use_id",
+            "type"
+          ],
+          "properties": {
+            "tool_use_id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "codex"
+              ]
+            }
+          }
+        },
+        {
+          "description": "OpenCode: no unique ID, approximate match via name+detail",
+          "type": "object",
+          "required": [
+            "name",
+            "type"
+          ],
+          "properties": {
+            "detail": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "opencode"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+/target
+crates/*/target/
+crates/*/Cargo.lock
+agent/opencode/plugins/opencode-types.ts
+/result
+/worktrees/
+/.worktrees/
+tmp/
+.superpowers/

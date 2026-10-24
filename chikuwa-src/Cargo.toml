@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/chikuwa", "crates/chikuwa-types"]
+resolver = "2"
